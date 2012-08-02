@@ -10,10 +10,7 @@
 
 #include "kmer_record.h"
 
-char **parseKmerCount(char *line){
-  
-  char **arr = malloc( 2 * sizeof(char *));
-
+char **parseKmerCount(char *line, char **arr){
   char delims[] = {'\t','\n'};
   char *result = NULL;
   result = strtok( line, delims);
@@ -31,11 +28,11 @@ int main(int argc, char *argv[]){
   size_t bufsize = 1024;
   char *buffer = malloc(bufsize);
   KmerRecord *record;
-  char **arr;
+  char **arr = malloc( 2 * sizeof(char *));
   int count;
-
+  
   while(-1 != getline(&buffer,&bufsize,stdin)){
-    arr = parseKmerCount(buffer);
+    parseKmerCount(buffer,arr);
     if(first){
       int ksize = strlen(arr[0]);
       fwrite(&ksize,sizeof(int),1,stdout);
@@ -47,6 +44,10 @@ int main(int argc, char *argv[]){
     setCount(record,count);
     writeKmerRecordToFile(record,stdout);
   }
+  
+  freeKmerRecord(record);
+  free(arr);
+  free(buffer);
   
   return 0;
 }

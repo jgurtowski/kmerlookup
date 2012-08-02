@@ -36,7 +36,7 @@ int main(int argc, char *argv[]){
     record = findRecordFromDb(db,buffer);
     printf("%s\t%d\n",record->kmer, record->count);
   }
-  
   freeKmerDb(db);
+  free(buffer);
   return 0;
 }
