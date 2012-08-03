@@ -30,7 +30,7 @@ KmerDb *newKmerDb(char *file){
   //create kmer record
   db -> kmer_record = newKmerRecord(kmersize);
   //calculate number of records
-  db -> record_size = kmersize + sizeof(int);
+  db -> record_size = db->kmer_record->kmer_packer->packed_buffer_size + sizeof(int);
   db -> num_records = (statbuf.st_size - sizeof(int)) 
     / db -> record_size;
   

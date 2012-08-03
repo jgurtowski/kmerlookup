@@ -4,7 +4,7 @@
 #include <fcntl.h>
 
 #include "kmer_record.h"
-
+#include "kmer_packer.h"
 
 KmerRecord *newKmerRecord(int ksize){
   KmerRecord *record = malloc( sizeof(KmerRecord) );
@@ -12,6 +12,7 @@ KmerRecord *newKmerRecord(int ksize){
   (record -> kmer)[ksize] = '\0';
   record -> count = 0;
   record -> kmer_size = ksize;
+  record -> kmer_packer = newKmerPacker(ksize);
   return record;
 }
 
@@ -25,17 +26,19 @@ void setCount(KmerRecord *r, int count){
 
 void freeKmerRecord(KmerRecord *r){
   free(r -> kmer);
+  freeKmerPacker(r->kmer_packer);
   free(r);
 }
 
 void readKmerRecordFromStream(KmerRecord *record, char *stream){
-  int ksize = record->kmer_size;
-  memcpy(record->kmer, stream, ksize);
-  memcpy(&(record->count), stream+ksize, sizeof(int));
+  memcpy(record->kmer_packer->packed_buffer, stream, record->kmer_packer->packed_buffer_size);
+  record -> kmer = unpackKmer(record->kmer_packer, record->kmer_packer->packed_buffer);
+  memcpy(&(record->count), stream+record->kmer_packer->packed_buffer_size, sizeof(int));
 }
 
 void writeKmerRecordToFile(KmerRecord *record, FILE *fh){
-  fwrite(record->kmer, sizeof(char), record->kmer_size, fh);
+  unsigned char *packed_kmer = packKmer(record -> kmer_packer, record->kmer);
+  fwrite(packed_kmer, sizeof(char), record->kmer_packer->packed_buffer_size, fh);
   fwrite(&(record->count), sizeof(int), 1, fh);
 }
 

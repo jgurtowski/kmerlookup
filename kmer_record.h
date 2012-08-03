@@ -3,8 +3,11 @@
 
 #include <stdio.h>
 
+#include "kmer_packer.h"
+
 typedef struct KmerRecord_struct{
   char *kmer;
+  KmerPacker *kmer_packer;
   int count;
   int kmer_size;
 }KmerRecord;
