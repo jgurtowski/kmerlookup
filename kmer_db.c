@@ -18,7 +18,7 @@ KmerDb *newKmerDb(char *file){
     return NULL;
   fstat(mapped_file, &statbuf);
   char *m = mmap(0,statbuf.st_size,PROT_READ,MAP_SHARED,mapped_file,0);
-  if(NULL == m)
+  if(m == MAP_FAILED)
     return NULL;
   KmerDb *db = malloc( sizeof(KmerDb));
   db -> mmapfile = m;
