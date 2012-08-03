@@ -33,8 +33,11 @@ int main(int argc, char *argv[]){
       first = false;
     }
     buffer[ksize] = '\0';
-    record = findRecordFromDb(db,buffer);
-    printf("%s\t%d\n",record->kmer, record->count);
+    if(NULL != (record = findRecordFromDb(db,buffer))){
+      printf("%s\t%d\n",record->kmer, record->count);
+    }else{
+      printf("%s\t%d\n",buffer,-1);
+    }
   }
   freeKmerDb(db);
   free(buffer);
