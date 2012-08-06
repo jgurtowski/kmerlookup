@@ -43,6 +43,7 @@ int main(int argc, char *argv[]){
     }else{
       printf("%s\t%d\n",buffer,-1);
     }
+    fflush(stdout);
   }
   freeKmerDb(db);
   free(buffer);
