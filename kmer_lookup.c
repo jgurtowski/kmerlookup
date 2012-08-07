@@ -23,7 +23,7 @@ int main(int argc, char *argv[]){
 
   KmerDb *db = newKmerDb(argv[1]);
   if(NULL == db){
-    printf("Error opening db %s\n",argv[1]);
+    fprintf(stderr,"Db failed to open %s\n",argv[1]);
     return -1;
   }
   

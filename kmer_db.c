@@ -7,6 +7,7 @@
 #include <string.h>
 #include <fcntl.h>
 #include <stdint.h>
+#include <errno.h>
 
 #include "kmer_db.h"
 #include "kmer_record.h"
@@ -14,12 +15,16 @@
 KmerDb *newKmerDb(char *file){
   struct stat statbuf;
   int mapped_file = open(file,O_RDONLY);
-  if(0 == mapped_file)
+  if(0 == mapped_file){
+    fprintf(stderr,"Error opening file %s\n", file);
     return NULL;
+  }
   fstat(mapped_file, &statbuf);
   char *m = mmap(0,statbuf.st_size,PROT_READ,MAP_SHARED,mapped_file,0);
-  if(m == MAP_FAILED)
+  if(m == MAP_FAILED){
+    fprintf(stderr, "Error mapping file %s, errno %d \n", file,errno);
     return NULL;
+  }
   KmerDb *db = malloc( sizeof(KmerDb));
   db -> mmapfile = m;
   db -> mapped_file_handle = mapped_file;
