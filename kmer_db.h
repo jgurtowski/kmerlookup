@@ -16,7 +16,7 @@ typedef struct KmerDb_struct{
   struct stat statbuf;
 }KmerDb;
 
-KmerDb *newKmerDb(char *file);
+KmerDb *newKmerDb(const char *file);
 void freeKmerDb(KmerDb *kdb);
 KmerRecord *getRecordFromDb(KmerDb *db, uint64_t idx);
 KmerRecord *findRecordFromDb(KmerDb *db, const char *kmer);

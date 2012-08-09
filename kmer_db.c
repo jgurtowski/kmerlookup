@@ -12,7 +12,7 @@
 #include "kmer_db.h"
 #include "kmer_record.h"
 
-KmerDb *newKmerDb(char *file){
+KmerDb *newKmerDb(const char *file){
   struct stat statbuf;
   int mapped_file = open(file,O_RDONLY);
   if(0 == mapped_file){
