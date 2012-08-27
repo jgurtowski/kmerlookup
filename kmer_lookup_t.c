@@ -84,7 +84,7 @@ int main(int argc, char *argv[]){
   while(NULL != fgets(line, LINE_SIZE, stdin)){
     line[read_len] = '\0'; // remove newline
     if(0 == (++num_reads) % 1000000)
-      fprintf(stderr,"Reads process: %d\n",num_reads);
+      fprintf(stderr,"Reads processed: %d\n",num_reads);
     readQueuePut(container->queue,line);
   }
   
