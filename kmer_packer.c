@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 
+
 #include "kmer_packer.h"
 
 static unsigned char getBits(char letter){
@@ -60,7 +61,7 @@ static void addBitsToByteArray(char src, unsigned char *dest, int num_bits, int 
  * Removes bits from src array's most signficant bits
  * Destructive, actually changes src
  **/
-static char popBitsFromByteArray(char *src, int num_bits, int src_length){
+static char popBitsFromByteArray(unsigned char *src, int num_bits, int src_length){
   assert(num_bits > 0);
   assert(num_bits < 8);
 
@@ -80,6 +81,8 @@ static char popBitsFromByteArray(char *src, int num_bits, int src_length){
 
 
 unsigned char *packKmer(KmerPacker *packer, const char *kmer){
+  assert( NULL != packer );
+  assert( NULL != kmer );
   int i;
   for(i=packer->kmer_size -1; i>=0; --i){
     addBitsToByteArray(getBits(kmer[i]),packer->packed_buffer,3, packer->packed_buffer_size);
@@ -88,6 +91,7 @@ unsigned char *packKmer(KmerPacker *packer, const char *kmer){
 }
 
 char *unpackKmer(KmerPacker *packer, const unsigned char *packed_kmer){
+  assert(NULL != packer);
   int i;
   memcpy(packer->scratch_pack_buffer, packer->packed_buffer, packer->packed_buffer_size);
   unsigned char coded_letter;
@@ -105,14 +109,15 @@ KmerPacker *newKmerPacker(int kmersize){
   if( (kmersize * 3) % 8 > 0 )
     ++packed_bytes;
   packer -> packed_buffer_size = packed_bytes;
-  packer -> packed_buffer = malloc(packed_bytes);
-  packer -> scratch_pack_buffer = malloc(packed_bytes);
-  packer -> unpacked_buffer = malloc(kmersize + 1);
+  packer -> packed_buffer = malloc(packed_bytes * sizeof(unsigned char));
+  packer -> scratch_pack_buffer = malloc(packed_bytes * sizeof(unsigned char));
+  packer -> unpacked_buffer = malloc((kmersize + 1) * sizeof(char));
   packer -> unpacked_buffer[kmersize] = '\0';
   return packer;
 }
 
 void freeKmerPacker(KmerPacker *packer){
+  assert( NULL != packer );
   free(packer->packed_buffer);
   free(packer->unpacked_buffer);
   free(packer->scratch_pack_buffer);

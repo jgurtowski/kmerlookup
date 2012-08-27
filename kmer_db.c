@@ -8,6 +8,7 @@
 #include <fcntl.h>
 #include <stdint.h>
 #include <errno.h>
+#include <unistd.h>
 
 #include "kmer_db.h"
 #include "kmer_record.h"

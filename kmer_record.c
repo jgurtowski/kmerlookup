@@ -32,7 +32,8 @@ void freeKmerRecord(KmerRecord *r){
 
 void readKmerRecordFromStream(KmerRecord *record, char *stream){
   memcpy(record->kmer_packer->packed_buffer, stream, record->kmer_packer->packed_buffer_size);
-  record -> kmer = unpackKmer(record->kmer_packer, record->kmer_packer->packed_buffer);
+  char *unpacked_kmer = unpackKmer(record->kmer_packer, record->kmer_packer->packed_buffer);
+  memcpy(record->kmer, unpacked_kmer, record->kmer_size);
   memcpy(&(record->count), stream+record->kmer_packer->packed_buffer_size, sizeof(int));
 }
 
