@@ -3,6 +3,8 @@
  *Looks up the count and writes the kmer and count to stdout
  **/
 
+
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>

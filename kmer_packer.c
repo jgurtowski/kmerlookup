@@ -66,7 +66,7 @@ static char popBitsFromByteArray(unsigned char *src, int num_bits, int src_lengt
   assert(num_bits < 8);
 
   unsigned char mask = 255 << (8-num_bits);
-  unsigned char dest;
+  unsigned char dest = 0; 
   int i;
   for(i=0; i<src_length-1; ++i){
     if(i ==0){

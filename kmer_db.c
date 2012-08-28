@@ -13,6 +13,26 @@
 #include "kmer_db.h"
 #include "kmer_record.h"
 
+
+
+KmerDb *newKmerDbWithMmap(int mapped_file_handle, char *mmap_arr, struct stat statbuf){
+
+  KmerDb *db = malloc( sizeof(KmerDb));
+  db -> mmapfile = mmap_arr;
+  db -> mapped_file_handle = mapped_file_handle;
+  db -> statbuf = statbuf;
+  //get kmersize from file
+  int kmersize;
+  memcpy(&kmersize, db->mmapfile, sizeof(int));
+  //create kmer record
+  db -> kmer_record = newKmerRecord(kmersize);
+  //calculate number of records
+  db -> record_size = db->kmer_record->kmer_packer->packed_buffer_size + sizeof(int);
+  db -> num_records = (statbuf.st_size - sizeof(int)) / db -> record_size;
+  
+  return db;
+}
+
 KmerDb *newKmerDb(const char *file){
   struct stat statbuf;
   int mapped_file = open(file,O_RDONLY);
@@ -26,21 +46,15 @@ KmerDb *newKmerDb(const char *file){
     fprintf(stderr, "Error mapping file %s, errno %d \n", file,errno);
     return NULL;
   }
-  KmerDb *db = malloc( sizeof(KmerDb));
-  db -> mmapfile = m;
-  db -> mapped_file_handle = mapped_file;
-  db -> statbuf = statbuf;
-  //get kmersize from file
-  int kmersize;
-  memcpy(&kmersize, db->mmapfile, sizeof(int));
-  //create kmer record
-  db -> kmer_record = newKmerRecord(kmersize);
-  //calculate number of records
-  db -> record_size = db->kmer_record->kmer_packer->packed_buffer_size + sizeof(int);
-  db -> num_records = (statbuf.st_size - sizeof(int)) 
-    / db -> record_size;
-  
-  return db;
+    
+  return newKmerDbWithMmap(mapped_file, m, statbuf);
+
+}
+
+void freeKmerDbWithMmap(KmerDb *kdb){
+  assert( NULL != kdb);
+  freeKmerRecord(kdb->kmer_record);
+  free(kdb);
 }
 
 void freeKmerDb(KmerDb *kdb){

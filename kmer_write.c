@@ -3,6 +3,7 @@
  **Input is from stdin, output goes to stdout
  **/
 
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -27,7 +28,7 @@ int main(int argc, char *argv[]){
   bool first = true;
   size_t bufsize = 1024;
   char *buffer = malloc(bufsize);
-  KmerRecord *record;
+  KmerRecord *record = NULL;
   char **arr = malloc( 2 * sizeof(char *));
   int count;
   
