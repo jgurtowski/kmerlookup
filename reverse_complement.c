@@ -15,12 +15,12 @@ int reverseComplement(const char *begin, const char *end, char *out){
     }else if(*end == 'N'){
       *out = 'N';
     }else{
-      return 0; //error
+      return -1; //error
     }
 
     end -= 1;
     out += 1;
   }
   *out = '\0';
-  return 1;
+  return 0;
 }

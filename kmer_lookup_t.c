@@ -16,61 +16,12 @@
 #include "read_queue.h"
 #include "kmer_db.h"
 #include "reverse_complement.h"
+#include "kmer_count_container.h"
 
-
-#define LINE_SIZE 1024
-
-typedef struct KmerCountContainer_struct{
-  ReadQueue *queue;
-  int kmersize;
-  pthread_mutex_t io_mutex;
-  
-  //for creating a new kmer db
-  struct stat statbuf;
-  int mapped_file_handle;
-  char *mapped_memory;
-}KmerCountContainer;
-
-/**
- *returns new KmerCountContainer
- */
-KmerCountContainer *kmerCountContainerNew(int readsize, int kmersize, const char *db_filename){
-  
-  KmerCountContainer *container = malloc(sizeof(KmerCountContainer));
-  container -> queue = readQueueNew(readsize);
-  pthread_mutex_init(&container->io_mutex, NULL);
-  container -> kmersize = kmersize;
-  
-  //open db file 
-  container->mapped_file_handle = open(db_filename,O_RDONLY);
-  if(0 == container->mapped_file_handle){
-    fprintf(stderr,"Error opening file %s\n", db_filename);
-    return NULL;
-  }
-  fstat(container->mapped_file_handle, &container->statbuf);
-  container->mapped_memory = mmap(0,container->statbuf.st_size,PROT_READ,MAP_SHARED,container->mapped_file_handle,0);
-  if(container->mapped_memory == MAP_FAILED){
-    fprintf(stderr, "Error mapping file %s, errno %d \n", db_filename,errno);
-    return NULL;
-  }
-  
-  return container;
-}
-
-void kmerCountContainerFree(KmerCountContainer *container){
-  assert( NULL != container);
-  readQueueFree(container -> queue);
-  pthread_mutex_destroy(&container->io_mutex);
-  
-  munmap(container->mapped_memory, container->statbuf.st_size);
-  close(container->mapped_file_handle);
-
-  free(container);
-}
+static int LINE_SIZE = 1024;
 
 //will actually process the data
 void *consumer_func(void *data);
-
 
 int main(int argc, char *argv[]){
 
@@ -90,8 +41,6 @@ int main(int argc, char *argv[]){
   char *kdb_filename = argv[1];
   
   int kmer_size = atoi(argv[2]);
-
-  
 
   KmerCountContainer *container = kmerCountContainerNew(read_len, kmer_size, kdb_filename);
 

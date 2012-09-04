@@ -7,7 +7,7 @@
  *@param end like c++ iteratores end should be one past the last letter you want to reverse complement
  *@return 1 for success, 0 failure
  */
-void reverseComplement(const char *begin, const char *end, char *out);
+int reverseComplement(const char *begin, const char *end, char *out);
 
 
 #endif
