@@ -15,9 +15,9 @@
 
 #include "read_queue.h"
 #include "kmer_db.h"
-#include "reverse_complement.h"
 #include "kmer_count_container.h"
-#include "count_segmenter.h"
+#include "read_corrector.h"
+
 
 static int LINE_SIZE = 1024;
 
@@ -80,6 +80,7 @@ int main(int argc, char *argv[]){
   return 0;
 }
 
+
 //process the reads
 void *consumer_func(void *data){
 
@@ -93,67 +94,32 @@ void *consumer_func(void *data){
   //allocate space for read
   char *read = malloc(sizeof(char) * (queue->readsize+1));
   read[queue->readsize] = '\0';
+    
+  ReadCorrector *read_corrector = newReadCorrector(db, queue->readsize, ksize);
   
-  //space for each kmer and reverse complement
-  char *kmer = malloc(sizeof(char) * (ksize+1));
-  char *kmer_rev = malloc(sizeof(char) * (ksize+1));
-  kmer[ksize] = '\0';
-  
-  //space for each count output
-  int num_kmers = queue->readsize - ksize + 1;
-  int *counts = malloc(sizeof(int) * num_kmers);
-
-  //create a new segmenter
-  CountSegmenter *segmenter = newCountSegmenter(num_kmers);
-  CountSegment *segment;  
-  
-  KmerRecord *record;
-  
+  //int *counts;
+  //int i;
   //work loop, as long as there is data in the queue, 
   //pull the reads out and look them up in the db
-  int i;
   while (0 == readQueuePop(queue,read)){
-    for(i=0;i<num_kmers;++i){
-      memcpy(kmer,read+i,ksize);
-      reverseComplement(kmer, kmer+ksize, kmer_rev);
-      //take the lower order kmer from either forward or reverse
-      if( strcmp( kmer, kmer_rev ) < 0)
-        record = findRecordFromDb(db, kmer);
-      else
-	record = findRecordFromDb(db, kmer_rev);
-        
-      if( NULL == record){
-        counts[i] = -1;
-      }else{
-        counts[i] = record->count;
-      }
-    }
+
+    char *corrected_read = readCorrectorCorrectRead(read_corrector, read, 3, 17.5);
     
-    countSegmenterSegment(segmenter, counts, num_kmers, 17.5);
+    printf("Corrected read: %s\n", corrected_read);
     
     //output data, use the io_mutex to lock output so it doesn't get clobbered
-    pthread_mutex_lock(&container->io_mutex);
+    /*pthread_mutex_lock(&container->io_mutex);
     printf("%s\t",read);
-    for(i=0;i<num_kmers -1;++i){
+    for(i=0;i<read_corrector->num_kmers -1;++i){
       printf("%d,",counts[i]);
     }
-    printf("%d\t",counts[i]);
-
-    for(i=0;i<segmenter->num_found_segments-1;++i){
-      segment = &(segmenter->segments[i]);
-      printf("l:%d-r:%d-m:%f,", segment->left,segment->right,segment->mean);
-    }
-    segment = &(segmenter->segments[i]);
-    printf("l:%d-r:%d-m:%f\n", segment->left,segment->right,segment->mean);
+    printf("%d\n",counts[i]);
     fflush(stdout);
-    pthread_mutex_unlock(&container->io_mutex);
+    pthread_mutex_unlock(&container->io_mutex);*/
   }
   
-  freeCountSegmenter(segmenter);
+  freeReadCorrector(read_corrector);
   freeKmerDbWithMmap(db);
-  free(counts);
-  free(kmer);
-  free(kmer_rev);
   free(read);
   return NULL;
 }

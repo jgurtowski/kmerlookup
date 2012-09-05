@@ -1,5 +1,5 @@
 #ifndef COUNT_SEGMENTER_H
-#define COUNT_SGEMENTER_H
+#define COUNT_SEGMENTER_H
 
 typedef struct CountSegment_struct{
   int left;
@@ -9,6 +9,8 @@ typedef struct CountSegment_struct{
 
 typedef struct CountSegmenter_struct{
   CountSegment *segments;
+  CountSegment *merge_buffer;
+  int num_merged_segments;
   int max_segments;
   int num_found_segments;
 }CountSegmenter;
@@ -31,5 +33,16 @@ void freeCountSegmenter(CountSegmenter *segmenter);
  * @return Pointer to the segmenter that was passed in
  */
 CountSegmenter *countSegmenterSegment(CountSegmenter *segmenter, int *counts, int num_counts, float threshold);
+
+/**
+ *Accessor function, given an array of segments return the mean for a given index
+ */
+const void *segmentMeanAccessor(const void *d, int idx);
+
+/**
+ *Merge small segments
+ *@param segment_size merge any segment <= segment_size in length
+ */
+int mergeSmallSegments(CountSegmenter *segmenter, int segment_size);
 
 #endif
