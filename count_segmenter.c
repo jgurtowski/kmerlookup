@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include <assert.h>
 #include <stdint.h>
 #include <string.h>
@@ -12,9 +13,13 @@ CountSegmenter *newCountSegmenter(int max_segments){
   segmenter -> merge_buffer = malloc(max_segments *sizeof(CountSegment));
   segmenter -> max_segments = max_segments;
   segmenter -> num_found_segments = 0;
-  
   return segmenter;
 };
+
+void zeroSegmentBuffer(CountSegmenter *segmenter){
+  assert( NULL != segmenter);
+  memset(segmenter->segments, 0, segmenter->max_segments * sizeof(CountSegment));
+}
 
 CountSegmenter *countSegmenterSegment(CountSegmenter *segmenter, int *counts, 
 				      int num_counts, float threshold){
@@ -52,6 +57,11 @@ CountSegmenter *countSegmenterSegment(CountSegmenter *segmenter, int *counts,
   return segmenter;
 }
 
+int segmentLength(CountSegment *segment){
+  assert(NULL != segment);
+  return segment->right - segment->left + 1;
+}
+
 int mergeSmallSegments(CountSegmenter *segmenter, int segment_size){
   assert( NULL != segmenter);
 
@@ -70,6 +80,7 @@ int mergeSmallSegments(CountSegmenter *segmenter, int segment_size){
 	  ++i;
 	}else{
 	  //segment to the right is small too, give up
+	  fprintf(stderr,"Segment to the right too small\n");
 	  return 1;
 	}
       }else if(i+1 < segmenter->num_found_segments && (segments[i+1].right - segments[i+1].left >= segment_size)){
@@ -77,6 +88,7 @@ int mergeSmallSegments(CountSegmenter *segmenter, int segment_size){
 	segments[i+1].left = segments[i].left;
       }else{
 	//too many small segments, give up
+	fprintf(stderr, "Too many segments, giving up\n");
 	return 2;
       }
     }else{ //segment passes segment_size cutoff, just add it to the merged list

@@ -95,32 +95,46 @@ void *consumer_func(void *data){
   char *read = malloc(sizeof(char) * (queue->readsize+1));
   read[queue->readsize] = '\0';
     
+  char *read_copy = malloc(sizeof(char) * (queue->readsize+1));
+  read[queue->readsize] = '\0';
+
   ReadCorrector *read_corrector = newReadCorrector(db, queue->readsize, ksize);
   
   //int *counts;
   //int i;
   //work loop, as long as there is data in the queue, 
   //pull the reads out and look them up in the db
-  while (0 == readQueuePop(queue,read)){
-
-    char *corrected_read = readCorrectorCorrectRead(read_corrector, read, 3, 17.5);
-    
-    printf("Corrected read: %s\n", corrected_read);
-    
-    //output data, use the io_mutex to lock output so it doesn't get clobbered
-    /*pthread_mutex_lock(&container->io_mutex);
-    printf("%s\t",read);
-    for(i=0;i<read_corrector->num_kmers -1;++i){
-      printf("%d,",counts[i]);
-    }
-    printf("%d\n",counts[i]);
-    fflush(stdout);
-    pthread_mutex_unlock(&container->io_mutex);*/
-  }
+  ReadCorrectorStats stats;
+  int correct_return_code;
   
+  ReadCorrectorConf corrector_conf = {
+    .repeat_coverage = 500,
+    .min_segment_length = 3,
+    .max_rounds_of_correction = 10,
+    .segmentation_threshold = 17.5
+  };
+  
+  while (0 == readQueuePop(queue,read)){
+    strcpy(read_copy,read);
+    correct_return_code = readCorrectorCorrectRead(read_corrector, &corrector_conf,read_copy,&stats);
+    
+    //print out results of correction
+    pthread_mutex_lock(&container->io_mutex);
+    if(correct_return_code){
+      //some error occurred print out the original read
+      printf("%s\t", read);
+    }else{
+      printf("%s\t",read_copy);
+    }
+    printf("%s\t%d\t%d\n",ReadCorrectorErrorString[correct_return_code],
+	   stats.number_of_alterations,stats.number_rounds_of_correction);
+    fflush(stdout);
+    pthread_mutex_unlock(&container->io_mutex);
+  }
   freeReadCorrector(read_corrector);
   freeKmerDbWithMmap(db);
   free(read);
+  free(read_copy);
   return NULL;
 }
 

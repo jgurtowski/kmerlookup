@@ -45,4 +45,14 @@ const void *segmentMeanAccessor(const void *d, int idx);
  */
 int mergeSmallSegments(CountSegmenter *segmenter, int segment_size);
 
+/**
+ *Compute the length over a segment
+ */
+int segmentLength(CountSegment *segment);
+
+/**
+ *Zero out segment buffer
+ */
+void zeroSegmentBuffer(CountSegmenter *segmenter);
+
 #endif

@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <limits.h>
 
 #include "kmer_record.h"
 
@@ -31,17 +32,23 @@ int main(int argc, char *argv[]){
   KmerRecord *record = NULL;
   char **arr = malloc( 2 * sizeof(char *));
   int count;
-  
+  int ksize;
+  long int lcount;
   while(-1 != getline(&buffer,&bufsize,stdin)){
     parseKmerCount(buffer,arr);
     if(first){
-      int ksize = strlen(arr[0]);
+      ksize = strlen(arr[0]);
       fwrite(&ksize,sizeof(int),1,stdout);
       record = newKmerRecord(ksize);
       first = false;
     }
     setKmer(record,arr[0]);
-    count = atoi(arr[1]);
+    lcount = atol(arr[1]);
+    if(lcount > INT_MAX){
+      count = INT_MAX;
+    }else{
+      count = (int)lcount;
+    }
     setCount(record,count);
     writeKmerRecordToFile(record,stdout);
   }
