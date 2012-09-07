@@ -56,7 +56,7 @@ int *readCorrectorBuildKmerCounts(ReadCorrector *corrector, const char *read){
       record = findRecordFromDb(corrector->kmer_db, kmer);
     else
       record = findRecordFromDb(corrector->kmer_db, kmer_rev);
-
+    
     if( NULL == record )
       counts[i] = -1;
     else
@@ -133,7 +133,7 @@ int readCorrectorCorrectRead(ReadCorrector *corrector, const ReadCorrectorConf* 
     countSegmenterSegment(corrector->segmenter,counts,corrector->num_kmers, conf->segmentation_threshold);
     num_found_segments = corrector->segmenter->num_found_segments;
 
-    /*printf("%s\t",read);
+    printf("%s\t",read);
       for(i =0;i<corrector->num_kmers;++i){
       printf("%d,",counts[i]);
     }
@@ -141,7 +141,7 @@ int readCorrectorCorrectRead(ReadCorrector *corrector, const ReadCorrectorConf* 
     for(i=0;i<num_found_segments;++i){
       printf("{l:%d,r:%d,m:%f},", segments[i].left, segments[i].right, segments[i].mean);
     }
-    printf("\n");*/
+    printf("\n");
 
     number_strange_segments = 0;
     for(i =0;i<num_found_segments;++i){

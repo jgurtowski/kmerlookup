@@ -15,4 +15,15 @@ void freeKmerPacker(KmerPacker *packer);
 char *unpackKmer(KmerPacker *packer, const unsigned char *packed_kmer);
 unsigned char *packKmer(KmerPacker *packer, const char *kmer);
 
+/**
+ *Compare packed kmers
+ *@return standard comparator int return
+ */
+int comparePackedKmers(const unsigned char *packed_kmer1, const unsigned char *packed_kmer2, int size);
+
+/**
+ *reads packed kmer from stream, stores into an internal buffer and 
+ * returns a pointer to internal buffer
+ */
+unsigned char *readPackedKmerFromStream(KmerPacker *packer, char *stream);
 #endif

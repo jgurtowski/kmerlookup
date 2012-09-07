@@ -25,9 +25,11 @@ KmerDb *newKmerDbWithMmap(int mapped_file_handle, char *mmap_arr, struct stat st
   int kmersize;
   memcpy(&kmersize, db->mmapfile, sizeof(int));
   //create kmer record
-  db -> kmer_record = newKmerRecord(kmersize);
+  db -> found_kmer_record = newKmerRecord(kmersize);
+  db -> search_kmer_record = newKmerRecord(kmersize);
+  
   //calculate number of records
-  db -> record_size = db->kmer_record->kmer_packer->packed_buffer_size + sizeof(int);
+  db -> record_size = db->found_kmer_record->kmer_packer->packed_buffer_size + sizeof(int);
   db -> num_records = (statbuf.st_size - sizeof(int)) / db -> record_size;
   
   return db;
@@ -53,7 +55,8 @@ KmerDb *newKmerDb(const char *file){
 
 void freeKmerDbWithMmap(KmerDb *kdb){
   assert( NULL != kdb);
-  freeKmerRecord(kdb->kmer_record);
+  freeKmerRecord(kdb->search_kmer_record);
+  freeKmerRecord(kdb->found_kmer_record);
   free(kdb);
 }
 
@@ -61,30 +64,35 @@ void freeKmerDb(KmerDb *kdb){
   assert(kdb != NULL);
   munmap(kdb-> mmapfile, kdb->statbuf.st_size);
   close(kdb->mapped_file_handle);
-  freeKmerRecord(kdb->kmer_record);
-  free(kdb);
+  freeKmerDbWithMmap(kdb);
 }
 
 KmerRecord *getRecordFromDb(KmerDb *db, uint64_t idx){
-  readKmerRecordFromStream(db->kmer_record,
+  readKmerRecordFromStream(db->found_kmer_record,
                            db->mmapfile + sizeof(int) + 
                            (idx * db -> record_size));
-  return db->kmer_record;
+  return db->found_kmer_record;
 }
 
 //simple binary search to find records
 KmerRecord *findRecordFromDb(KmerDb *db, const char *kmer){
-  assert( db != NULL);
+  assert( NULL != db);
+  assert( NULL != kmer);
   
   uint64_t l = 0;
   uint64_t r = db -> num_records;
   uint64_t cur;
+  setKmer(db->search_kmer_record, kmer);
+  ensurePacked(db->search_kmer_record);
+  
   KmerRecord *record;
+  int diff;
   while( l <= r){
     cur = (l + r) / 2 ;
     record = getRecordFromDb(db,cur);
     assert( record != NULL );
-    int diff = strcmp(kmer,record->kmer);
+    //    int diff = strcmp(kmer,record->kmer);
+    diff = compareRecordByKmer(db->search_kmer_record, record);
     if(diff < 0 ){
       r = cur - 1;
     }else if(diff > 0){

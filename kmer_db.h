@@ -10,7 +10,8 @@
 typedef struct KmerDb_struct{
   int mapped_file_handle;
   char *mmapfile;
-  KmerRecord  *kmer_record;
+  KmerRecord *found_kmer_record;
+  KmerRecord *search_kmer_record;
   uint64_t num_records;
   int record_size;
   struct stat statbuf;

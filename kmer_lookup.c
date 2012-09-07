@@ -41,7 +41,7 @@ int main(int argc, char *argv[]){
     }
     buffer[ksize] = '\0';
     if(NULL != (record = findRecordFromDb(db,buffer))){
-      printf("%s\t%d\n",record->kmer, record->count);
+      printf("%s\t%d\n",getKmer(record), record->count);
     }else{
       printf("%s\t%d\n",buffer,-1);
     }

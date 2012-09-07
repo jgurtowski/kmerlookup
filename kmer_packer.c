@@ -79,10 +79,22 @@ static char popBitsFromByteArray(unsigned char *src, int num_bits, int src_lengt
   return dest;
 }
 
+int comparePackedKmers(const unsigned char *packed_kmer1, const unsigned char *packed_kmer2, int size){
+  int i;
+  for(i=0;i<size; ++i){
+    if(packed_kmer1[i] < packed_kmer2[i])
+      return -1;
+    else if(packed_kmer1[i] > packed_kmer2[i])
+      return 1;
+  }
+  return 0;
+}
 
 unsigned char *packKmer(KmerPacker *packer, const char *kmer){
   assert( NULL != packer );
   assert( NULL != kmer );
+  //zero buffer so we don't have left over bits from last operation
+  memset(packer->packed_buffer, 0, packer->packed_buffer_size); 
   int i;
   for(i=packer->kmer_size -1; i>=0; --i){
     addBitsToByteArray(getBits(kmer[i]),packer->packed_buffer,3, packer->packed_buffer_size);
@@ -102,6 +114,12 @@ char *unpackKmer(KmerPacker *packer, const unsigned char *packed_kmer){
   return packer->unpacked_buffer;
 }
 
+unsigned char *readPackedKmerFromStream(KmerPacker *packer, char *stream){
+  assert ( NULL != packer );
+  memcpy( packer->packed_buffer, stream, packer->packed_buffer_size);
+  return packer->packed_buffer;
+}
+
 KmerPacker *newKmerPacker(int kmersize){
   KmerPacker *packer = malloc( sizeof(KmerPacker));
   packer -> kmer_size = kmersize;
@@ -109,9 +127,9 @@ KmerPacker *newKmerPacker(int kmersize){
   if( (kmersize * 3) % 8 > 0 )
     ++packed_bytes;
   packer -> packed_buffer_size = packed_bytes;
-  packer -> packed_buffer = malloc(packed_bytes * sizeof(unsigned char));
-  packer -> scratch_pack_buffer = malloc(packed_bytes * sizeof(unsigned char));
-  packer -> unpacked_buffer = malloc((kmersize + 1) * sizeof(char));
+  packer -> packed_buffer = calloc(packed_bytes , sizeof(unsigned char));
+  packer -> scratch_pack_buffer = calloc(packed_bytes , sizeof(unsigned char));
+  packer -> unpacked_buffer = calloc((kmersize + 1) , sizeof(char));
   packer -> unpacked_buffer[kmersize] = '\0';
   return packer;
 }
